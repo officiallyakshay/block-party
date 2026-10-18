@@ -44,6 +44,10 @@ describe('themes and daily persistence regressions',()=>{
   seed('daily',{moves:24},{dailyDates:['2026-10-15']});const view=render(<App/>);tapPiece('Select single block, 1 squares');fireEvent.click(screen.getByRole('gridcell',{name:'Row 1, column 1, empty'}));view.unmount();render(<App/>);expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
  });
  it('updates the streak when another tab completes a puzzle',()=>{
-  render(<App/>);const p=loadProfile();p.dailyDates=['2026-10-15','2026-10-16'];localStorage.setItem(STORAGE_KEY,JSON.stringify(p));fireEvent(window,new StorageEvent('storage',{key:STORAGE_KEY}));expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
+  render(<App/>);const p=loadProfile();p.dailyDates=['2026-10-15','2026-10-16'];p.playDates=[...p.dailyDates];localStorage.setItem(STORAGE_KEY,JSON.stringify(p));fireEvent(window,new StorageEvent('storage',{key:STORAGE_KEY}));expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
  });
+});
+
+it('credits one play streak day for a placement in any mode, including practice',()=>{
+ seed('classic',{}, {playDates:['2026-10-15']});const view=render(<App/>);tapPiece('Select single block, 1 squares');fireEvent.click(screen.getByRole('gridcell',{name:'Row 1, column 1, empty'}));expect(loadProfile().playDates).toEqual(['2026-10-15','2026-10-16']);expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');view.unmount();render(<App/>);expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
 });

@@ -27,3 +27,5 @@
 .pause-options{display:flex;justify-content:center;gap:30px;margin-top:2px}
 
 .backup-restore{flex-direction:column;align-items:stretch;gap:10px}.backup-restore input{max-width:100%;min-width:0;font:inherit;font-size:12px}.backup-restore:focus-within{outline:2px solid var(--accent);outline-offset:3px}
+
+@media(max-width:380px){.site-header nav button{padding:9px 3px}.site-header nav{gap:0}.site-header{gap:6px}.header-actions{margin-left:0}}
