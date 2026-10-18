@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import {describe,it,expect,beforeEach,afterEach,vi} from 'vitest';
-import {render,screen,fireEvent,cleanup,act} from '@testing-library/react';
+import {render,screen,fireEvent,cleanup,act,within} from '@testing-library/react';
 import App from './App';
 import {newGame,emptyBoard,type Game} from './engine';
 import {freshProfile,STORAGE_KEY,gameKey,loadProfile,type Profile} from './persistence';
@@ -27,4 +27,23 @@ describe('consumer game flows',()=>{
  it('unlocks the cosmetic after 100 pumpkins and can equip it',()=>{const g=seed('seasonal',{}, {pumpkins:99});for(let c=0;c<7;c++)g.board[0][c]={color:1,pumpkin:false};seed('seasonal',g,{pumpkins:99});render(<App/>);tapPiece('Select single block, 1 squares');fireEvent.click(screen.getByRole('gridcell',{name:'Row 1, column 8, empty'}));expect(loadProfile().pumpkins).toBe(100);fireEvent.click(screen.getByRole('button',{name:'Themes'}));fireEvent.click(screen.getByRole('button',{name:'Equip'}));expect(loadProfile().settings.glow).toBe(true);});
  it('keeps dialog keyboard focus stable when the countdown ticks',()=>{seed();render(<App/>);fireEvent.click(screen.getByRole('button',{name:'Settings'}));const sound=screen.getByRole('switch',{name:/Sound effects/});sound.focus();act(()=>vi.advanceTimersByTime(1100));expect(document.activeElement).toBe(sound);fireEvent.keyDown(sound,{key:'Escape'});expect(screen.queryByRole('dialog')).toBeNull();});
  it('saves settings and exposes five honest achievements',()=>{render(<App/>);fireEvent.click(screen.getByRole('button',{name:'Settings'}));fireEvent.click(screen.getByRole('switch',{name:/Sound effects/}));expect(loadProfile().settings.sound).toBe(false);fireEvent.click(screen.getByRole('button',{name:'Close dialog'}));fireEvent.click(screen.getByRole('button',{name:'Achievements'}));expect(screen.getByText('0 of 5 unlocked · Recorded in this browser.')).toBeDefined();});
+});
+
+describe('themes and daily persistence regressions',()=>{
+ it('makes every theme selectable and preserves the selection after reopening',()=>{
+  const view=render(<App/>);fireEvent.click(screen.getByRole('button',{name:'Themes'}));
+  for(const name of ['Original Party','Haunted Party','Harvest Party','Winter Party','Sweetheart Party','Bloom Party','Poolside Party']){
+   const button=within(screen.getByRole('dialog')).getByRole('button',{name:new RegExp(name)});expect((button as HTMLButtonElement).disabled).toBe(false);fireEvent.click(button);
+  }
+  expect(loadProfile().settings.theme).toBe('summer');view.unmount();render(<App/>);expect(document.querySelector('.app')?.getAttribute('style')).toContain('#123342');
+ });
+ it('changes the visible theme of a seasonal run and preserves it after reload',()=>{
+  seed('seasonal');const view=render(<App/>);fireEvent.click(screen.getByRole('button',{name:'Themes'}));fireEvent.click(screen.getByRole('button',{name:/Winter Party/}));expect(loadProfile().games.seasonal.theme).toBe('winter');view.unmount();render(<App/>);expect(document.querySelector('.app')?.getAttribute('style')).toContain('#183341');
+ });
+ it('restores a completed daily streak after closing and reopening',()=>{
+  seed('daily',{moves:24},{dailyDates:['2026-10-15']});const view=render(<App/>);tapPiece('Select single block, 1 squares');fireEvent.click(screen.getByRole('gridcell',{name:'Row 1, column 1, empty'}));view.unmount();render(<App/>);expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
+ });
+ it('updates the streak when another tab completes a puzzle',()=>{
+  render(<App/>);const p=loadProfile();p.dailyDates=['2026-10-15','2026-10-16'];localStorage.setItem(STORAGE_KEY,JSON.stringify(p));fireEvent(window,new StorageEvent('storage',{key:STORAGE_KEY}));expect(document.querySelector('.streak-pill b')?.textContent).toBe('2');
+ });
 });

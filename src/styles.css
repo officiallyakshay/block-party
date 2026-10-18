@@ -25,3 +25,5 @@
 @media(max-width:720px){.in-game .site-header{display:none}.game-main{padding-top:14px}.game-top{margin-bottom:13px}.board-shell{width:clamp(240px,calc(100svh - 320px),100%);margin-left:auto;margin-right:auto}.game-title h1{line-height:1.2}.scoreboard{max-width:440px;margin:auto}}
 @media(max-width:520px) and (max-height:740px){.game-main{padding-top:10px}.game-top{margin-bottom:10px}}
 .pause-options{display:flex;justify-content:center;gap:30px;margin-top:2px}
+
+.backup-restore{flex-direction:column;align-items:stretch;gap:10px}.backup-restore input{max-width:100%;min-width:0;font:inherit;font-size:12px}.backup-restore:focus-within{outline:2px solid var(--accent);outline-offset:3px}
